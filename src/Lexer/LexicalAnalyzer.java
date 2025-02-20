@@ -62,29 +62,39 @@ public class LexicalAnalyzer {
             // Check for identifiers or keywords
             if (Character.isLetter(currentChar)) {
                 String token = readIdentifier();
-                if (isValidToken(token, "KEYWORD")) {
+                if (token.equals("true") || token.equals("false")) {
+                    tokens.add(new Token("BOOLEAN", token)); // Add Boolean token
+                } else if (isValidToken(token, "KEYWORD")) {
                     tokens.add(new Token("KEYWORD", token));
                 } else if (isValidToken(token, "IDENTIFIER")) {
                     tokens.add(new Token("IDENTIFIER", token));
-                    // Add identifier to symbol table
-                    symbolTable.addSymbol(token, "UNKNOWN", lineNumber); // Default type is UNKNOWN
+                    symbolTable.addSymbol(token, "UNKNOWN", lineNumber);
                 } else {
                     throw new RuntimeException("Invalid identifier at line " + lineNumber + ": " + token);
                 }
                 continue;
             }
+            
 
             // Check for numbers (whole or decimal)
-            if (Character.isDigit(currentChar)) {
-                String token = readNumber();
+            // Check for numbers (whole or decimal), including negative numbers
+            if (Character.isDigit(currentChar) ||
+            (currentChar == '-' && (position + 1 < input.length() && Character.isDigit(input.charAt(position + 1))))) {
+            String token = readNumber();
+            if (token.contains(".")) {
                 if (isValidToken(token, "DECIMAL")) {
                     tokens.add(new Token("DECIMAL", token));
-                } else if (isValidToken(token, "WHOLE_NUMBER")) {
+                } else {
+                    throw new RuntimeException("Invalid decimal number at line " + lineNumber + ": " + token);
+                }
+            } else {
+                if (isValidToken(token, "WHOLE_NUMBER")) {
                     tokens.add(new Token("WHOLE_NUMBER", token));
                 } else {
-                    throw new RuntimeException("Invalid number at line " + lineNumber + ": " + token);
+                    throw new RuntimeException("Invalid whole number at line " + lineNumber + ": " + token);
                 }
-                continue;
+            }
+            continue;
             }
 
             // Handle operators
@@ -104,7 +114,6 @@ public class LexicalAnalyzer {
 
         // Print the symbol table after tokenization
         symbolTable.printSymbolTable();
-
         return tokens;
     }
     private String readStringLiteral() {
@@ -161,7 +170,7 @@ public class LexicalAnalyzer {
             position++;
         }
     
-        tokens.add(new Token("COMMENT", sb.toString())); // Store entire comment
+        tokens.add(new Token("Single_COMMENT", sb.toString())); // Store entire comment
     }
     
 
@@ -218,37 +227,49 @@ public class LexicalAnalyzer {
     return sb.toString();
 }
 
+private String readNumber() {
+    StringBuilder sb = new StringBuilder();
+    boolean hasDecimal = false;
 
-    private String readNumber() {
-        StringBuilder sb = new StringBuilder();
-        boolean hasDecimal = false;
-    
-        while (position < input.length()) {
-            char currentChar = input.charAt(position);
-    
-            if (Character.isDigit(currentChar)) {
-                sb.append(currentChar);
-            } else if (currentChar == '.' && !hasDecimal) {
-                hasDecimal = true;
-                sb.append(currentChar);
-            } else {
-                break;
-            }
+    // Handle optional negative sign
+    if (position < input.length() && input.charAt(position) == '-') {
+        if (position + 1 < input.length() && Character.isDigit(input.charAt(position + 1))) {
+            sb.append('-');
             position++;
+        } else {
+            throw new RuntimeException("Invalid number at line " + lineNumber + ": '-' must be followed by a digit");
         }
-    
-        // Check if the next character is a letter (invalid variable name like '3x')
-        if (position < input.length() && Character.isLetter(input.charAt(position))) {
-            throw new RuntimeException("Invalid identifier at line " + lineNumber + ": " + sb.toString() + input.charAt(position));
-        }
-    
-        return sb.toString();
     }
-    
+
+    while (position < input.length()) {
+        char currentChar = input.charAt(position);
+        if (Character.isDigit(currentChar)) {
+            sb.append(currentChar);
+        } else if (currentChar == '.' && !hasDecimal) {
+            hasDecimal = true;
+            sb.append(currentChar);
+        } else {
+            break;
+        }
+        position++;
+    }
+
+    // Ensure the number is valid and not just '-' or '-.'
+    if (sb.toString().equals("-") || sb.toString().equals("-.")) {
+        throw new RuntimeException("Invalid number at line " + lineNumber + ": '" + sb.toString() + "' is not a valid number");
+    }
+
+    // Check for invalid number formats like '-3x'
+    if (position < input.length() && Character.isLetter(input.charAt(position))) {
+        throw new RuntimeException("Invalid identifier at line " + lineNumber + ": " + sb.toString() + input.charAt(position));
+    }
+
+    return sb.toString();
+}
     // Reads input(x) or output(x)
     private void readFunctionCall(List<Token> tokens) {
         StringBuilder sb = new StringBuilder();
-        int startPos = position;
+     
     
         // Read function name (input or output)
         while (position < input.length() && Character.isLetter(input.charAt(position))) {
@@ -306,7 +327,7 @@ public class LexicalAnalyzer {
         if (dfa == null) {
             throw new RuntimeException("No DFA found for token type: " + tokenType);
         }
-       // DFAConverter.printDFATransitionTable(dfa);
+      
         State currentState = dfa.startState;
         for (char c : token.toCharArray()) {
             Map<Character, State> transitions = dfa.transitionTable.get(currentState);

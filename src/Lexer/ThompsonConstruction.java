@@ -1,25 +1,26 @@
 package Lexer;
 
 import java.util.*;
-import java.util.*;
 
 public class ThompsonConstruction {
     private static int stateCounter = 1;
-    private static   String[] regexes = {
-        // "int|float|global|local|char|bool",//keywords
-        //"[a-z]|[0-9]",//char input
-        //"[0-9]+",//int input
-        //"[%+\\-@=]",//operations
-        //"[0-9]+(\\.[0-9]+)*",//float input
-        //"#",//single line comment
-        //"@[a-z]+[0-9]*@",//multi line comment
-        "0|1",//bool input
-        "input\\([a-z]+[0-9]*\\)",//input
-       "output\\([a-z]+[0-9]*\\)",//output
-       "[;]",//semicolon
-       "[{]",//open bracket
-       "[}]",//close bracket
+    private static String[][] tokenRegexes = {
+        {"BOOLEAN", "false|true"},
+        {"IDENTIFIER", "[a-z]+"},
+        {"WHOLE_NUMBER", "\\-?[0-9]+"},
+        {"DECIMAL", "\\-?[0-9]+(\\.[0-9]+)*"},
+        {"KEYWORD", "int|float|global|char|bool"},
+        {"CHAR", "'[a-z0-9]'"},
+        {"OPERATOR", "[%+\\-@=*^]"},
+        {"SINGLE_LINE_COMMENT", "#[a-z]*"},
+        {"MULTI_LINE_COMMENT", "@[a-zA-Z0-9]*@"},
+        {"INPUT/OUTPUT", "input\\([a-z]+[0-9]*\\)|output\\([a-z]+[0-9]*\\)"},
+        {"String", "\"[^\"]*\""},
+        {"SYMBOL", "[;()]"},
+        {"OPEN_BRACKET", "[{]"},
+        {"CLOSE_BRACKET", "[}]"}
     };
+
     public static NFA buildNFAFromRegex(RegexNode node) {
         
         if (node instanceof LiteralNode) {
@@ -141,26 +142,26 @@ public class ThompsonConstruction {
         return buildNFAFromRegex(ast);
     }
     public static void showTransitionTable() {
+        // 2D array where each entry contains [tokenType, regex]
       
-
-        for (int i = 0; i < regexes.length; i++) {
-            stateCounter = 1;
-            System.out.println("NFA for Regex " + (i + 1) + ": " + regexes[i]);
-
-          
-
-             NFA nfa = buildNFAFromRegex(regexes[i]);
-                printTransitionTable(nfa);
-
+        for (int i = 0; i < tokenRegexes.length; i++) {
+            stateCounter = 1; // Reset state counter for each regex
+            String tokenType = tokenRegexes[i][0];
+            String regex = tokenRegexes[i][1];
+    
+            System.out.println("NFA for Token Type: " + tokenType + ", Regex: " + regex);
+            NFA nfa = buildNFAFromRegex(regex);
+            printTransitionTable(nfa);
             System.out.println("Starting State: " + nfa.startState.id);
             System.out.println("Accepting State: " + nfa.finalState.id);
             System.out.println();
-
-            // Convert to DFA and print
+    
+            // Convert NFA to DFA and print its transition table
             DFAfromNFA(nfa);
-            System.out.println();   
+            System.out.println();
         }
     }
+    
     public static void DFAfromNFA(NFA nfa) {
          DFAConverter.convertNFAtoDFA(nfa);
         DFA dfa = DFAConverter.convertNFAtoDFA(nfa);

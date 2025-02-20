@@ -12,7 +12,8 @@ public class App {
 
             // Read file content
             String code = new String(Files.readAllBytes(Paths.get(filePath)));
-
+            //printing all nfa
+            ThompsonConstruction.showTransitionTable();
             // Initialize lexer
             LexicalAnalyzer analyzer = new LexicalAnalyzer(code);
             analyzer.tokenize().forEach(System.out::println);

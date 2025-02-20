@@ -3,8 +3,6 @@ package Lexer;
 import java.util.Set;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Collections;
-import java.util.*;
 
 public class DFA {
     State startState;

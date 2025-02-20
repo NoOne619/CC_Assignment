@@ -1,7 +1,6 @@
 package Lexer;
 
 import java.util.*;
-import java.util.*;
 
 public class DFAConverter {
     public static DFA convertNFAtoDFA(NFA nfa) {
