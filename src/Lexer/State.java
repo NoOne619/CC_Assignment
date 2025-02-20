@@ -1,7 +1,6 @@
 package Lexer;
 
 import java.util.*;
-import java.util.*;
 
 public class State {
     int id;
