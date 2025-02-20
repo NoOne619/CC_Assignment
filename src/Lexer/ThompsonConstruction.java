@@ -14,11 +14,11 @@ public class ThompsonConstruction {
         {"OPERATOR", "[%+\\-@=*^]"},
         {"SINGLE_LINE_COMMENT", "#[a-z]*"},
         {"MULTI_LINE_COMMENT", "@[a-zA-Z0-9]*@"},
-        {"INPUT/OUTPUT", "input\\([a-z]+[0-9]*\\)|output\\([a-z]+[0-9]*\\)"},
         {"String", "\"[^\"]*\""},
         {"SYMBOL", "[;()]"},
         {"OPEN_BRACKET", "[{]"},
-        {"CLOSE_BRACKET", "[}]"}
+        {"CLOSE_BRACKET", "[}]"},
+        {"INPUT/OUTPUT", "input|output"},
     };
 
     public static NFA buildNFAFromRegex(RegexNode node) {
@@ -133,9 +133,7 @@ public class ThompsonConstruction {
         }
     }
 
-    public static void main(String[] args) {
-       showTransitionTable();
-    }
+   
     public static NFA buildNFAFromRegex(String regex) {
         Parser parser = new Parser(regex);
         RegexNode ast = parser.parse();
