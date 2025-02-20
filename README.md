@@ -28,7 +28,7 @@ The lexer scans source code, identifies tokens, and outputs their types along wi
 ### Values
 - **Integer Numbers:** `10, -42, 0`
 - **Float Numbers:** `3.14, -0.99`
-- **Boolean:** `1, 0`
+- **Boolean:** `true, false`
 - **Character:** `'a'`, `'z'`
 
 ### Comments
